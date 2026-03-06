@@ -18,21 +18,19 @@ body {
     background-color: var(--bg-dark);
     color: var(--text-main);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    overflow: hidden;
-    height: 100vh;
-    width: 100vw;
+    overflow-x: hidden;
+    min-height: 100vh;
 }
 
 .app-container {
     display: flex;
-    height: 100vh;
+    min-height: 100vh;
     width: 100vw;
 }
 
-/* Sidebar */
+/* Sidebar (Desktop) */
 .sidebar {
     width: 260px;
-    height: 100%;
     background-color: var(--bg-sidebar);
     border-right: 1px solid var(--border-color);
     display: flex;
@@ -74,16 +72,10 @@ body {
     color: var(--text-main);
     font-size: 0.9rem;
     font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
 }
 
 .nav-item.active {
     background: var(--bg-card);
-}
-
-.nav-item:hover:not(.active) {
-    background: rgba(255, 255, 255, 0.05);
 }
 
 .sidebar-footer {
@@ -98,9 +90,10 @@ body {
 
 .social-links {
     display: flex;
-    gap: 1.25rem;
+    gap: 1.5rem;
     justify-content: center;
     align-items: center;
+    width: 100%;
 }
 
 .social-links a {
@@ -115,12 +108,13 @@ body {
 }
 
 .dev-credit {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
     color: var(--text-muted);
-    font-weight: 600;
+    font-weight: 700;
     text-align: center;
+    width: 100%;
 }
 
 /* Game Main Area */
@@ -133,6 +127,7 @@ body {
     padding: 2rem;
     position: relative;
     overflow-y: auto;
+    width: 100%;
 }
 
 .canvas-wrapper {
@@ -141,6 +136,9 @@ body {
     overflow: hidden;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
     border: 4px solid var(--bg-card);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 #canvas {
@@ -154,8 +152,9 @@ body {
 .game-info {
     margin-top: 1.5rem;
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 1rem;
     text-align: center;
+    width: 100%;
 }
 
 .game-info strong {
@@ -167,40 +166,40 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
-    margin-top: 2rem;
-    padding-bottom: 2rem;
+    gap: 1rem;
+    margin-top: 2.5rem;
+    padding-bottom: 3rem;
     width: 100%;
 }
 
-/* Responsive */
+/* Responsive Scaling */
 @media (max-width: 768px) {
-    body {
-        overflow: auto;
-    }
     .app-container {
-        height: auto;
-        min-height: 100vh;
+        flex-direction: column;
     }
     .sidebar {
         display: none;
     }
     .game-main {
-        padding: 1rem;
+        padding: 1rem 0.5rem;
         justify-content: flex-start;
     }
     .canvas-wrapper {
         width: 100%;
-        max-width: 500px;
+        max-width: 100%;
         border-width: 2px;
+        border-radius: 8px;
     }
     #canvas {
-        width: 100%;
-        height: auto;
-        aspect-ratio: 276 / 414;
-        max-height: none;
+        width: 100% !important;
+        height: auto !important;
+        max-height: 75vh;
     }
     .mobile-footer {
         display: flex;
+    }
+    .social-links svg {
+        width: 24px;
+        height: 24px;
     }
 }
