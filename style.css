@@ -99,11 +99,15 @@ body {
 .social-links {
     display: flex;
     gap: 1.25rem;
+    justify-content: center;
+    align-items: center;
 }
 
 .social-links a {
     color: var(--text-muted);
     transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
 }
 
 .social-links a:hover {
@@ -116,6 +120,7 @@ body {
     letter-spacing: 1px;
     color: var(--text-muted);
     font-weight: 600;
+    text-align: center;
 }
 
 /* Game Main Area */
@@ -127,6 +132,7 @@ body {
     justify-content: center;
     padding: 2rem;
     position: relative;
+    overflow-y: auto;
 }
 
 .canvas-wrapper {
@@ -146,7 +152,7 @@ body {
 }
 
 .game-info {
-    margin-top: 2rem;
+    margin-top: 1.5rem;
     color: var(--text-muted);
     font-size: 0.9rem;
     text-align: center;
@@ -156,23 +162,45 @@ body {
     color: var(--text-main);
 }
 
+.mobile-footer {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 2rem;
+    padding-bottom: 2rem;
+    width: 100%;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
+    body {
+        overflow: auto;
+    }
+    .app-container {
+        height: auto;
+        min-height: 100vh;
+    }
     .sidebar {
         display: none;
     }
     .game-main {
-        padding: 0.5rem;
+        padding: 1rem;
+        justify-content: flex-start;
     }
     .canvas-wrapper {
         width: 100%;
-        max-width: 450px;
+        max-width: 500px;
         border-width: 2px;
     }
     #canvas {
         width: 100%;
         height: auto;
-        max-height: 85vh;
+        aspect-ratio: 276 / 414;
+        max-height: none;
+    }
+    .mobile-footer {
+        display: flex;
     }
 }
-\n.mobile-footer {\n    display: none;\n    flex-direction: column;\n    align-items: center;\n    gap: 0.75rem;\n    margin-top: 2rem;\n    padding-bottom: 1rem;\n}\n\n@media (max-width: 768px) {\n    .mobile-footer {\n        display: flex;\n    }\n}
