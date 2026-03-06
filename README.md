@@ -31,3 +31,7 @@ Developed with ❤️ by **bxzex**.
 ## License
 
 MIT License - feel free to use and extend.
+
+
+---
+Built by bxzex (https://github.com/bxzex).
