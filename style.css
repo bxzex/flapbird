@@ -175,3 +175,4 @@ body {
         max-height: 85vh;
     }
 }
+\n.mobile-footer {\n    display: none;\n    flex-direction: column;\n    align-items: center;\n    gap: 0.75rem;\n    margin-top: 2rem;\n    padding-bottom: 1rem;\n}\n\n@media (max-width: 768px) {\n    .mobile-footer {\n        display: flex;\n    }\n}
