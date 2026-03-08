@@ -148,8 +148,7 @@ body {
 #canvas {
     display: block;
     max-width: 100%;
-    height: 85vh;
-    width: auto;
+    max-height: 100%;
     image-rendering: pixelated;
 }
 
