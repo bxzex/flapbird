@@ -14,6 +14,10 @@ A high-performance, responsive remake of the classic Flappy Bird game built with
 - **Desktop:** Press `Space`, `W`, or `Arrow Up` to flap.
 - **Mobile/Tablet:** Tap the screen to flap.
 
+## Disclaimer 
+
+This project is an independent development skill test and is not affiliated with, endorsed by, or associated with the original creators of Flappy Bird or any related companies. All assets and logic are used for educational and portfolio demonstration purposes only. 
+
 ## Built With
 
 - **JavaScript (ES6)** - Game Logic
@@ -31,3 +35,7 @@ Developed with ❤️ by **bxzex**.
 ## License
 
 MIT License - feel free to use and extend.
+
+
+---
+Built by bxzex (https://github.com/bxzex).
