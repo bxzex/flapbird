@@ -368,16 +368,6 @@ SFX.score.src = "assets/sounds/score.wav";
 SFX.hit.src = "assets/sounds/hit.wav";
 SFX.die.src = "assets/sounds/die.wav";
 
-// Check if user wants to use a single sprite sheet
-const newSpriteSheetImg = new Image();
-newSpriteSheetImg.src = "assets/images/new-spritesheet.png";
-let useNewSpriteSheet = false;
-
-newSpriteSheetImg.onload = function() {
-    console.log("Loaded new sprite sheet.");
-    useNewSpriteSheet = true;
-};
-
 function gameLoop() {
   update();
   draw();
@@ -400,19 +390,7 @@ function draw() {
   bg.draw();
   pipe.draw();
   
-  if (useNewSpriteSheet && state.curr !== state.gameOver) {
-    // If the user meant the new sprite sheet to be the bird, we can draw it scaled down
-    sctx.save();
-    sctx.translate(bird.x, bird.y);
-    sctx.rotate(bird.rotatation * RAD);
-    // Draw the whole new image scaled to bird size (assuming it's a replacement bird sprite)
-    let bWidth = 34; // standard bird width
-    let bHeight = 24;
-    sctx.drawImage(newSpriteSheetImg, -bWidth / 2, -bHeight / 2, bWidth, bHeight);
-    sctx.restore();
-  } else {
-    bird.draw();
-  }
+  bird.draw();
   
   drawParticles(); // Draw particles before ground
   gnd.draw();
