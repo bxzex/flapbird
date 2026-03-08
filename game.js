@@ -2,48 +2,6 @@ const RAD = Math.PI / 180;
 const scrn = document.getElementById("canvas");
 const sctx = scrn.getContext("2d");
 scrn.tabIndex = 1;
-scrn.addEventListener("click", () => {
-  switch (state.curr) {
-    case state.getReady:
-      state.curr = state.Play;
-      SFX.start.play();
-      break;
-    case state.Play:
-      bird.flap();
-      break;
-    case state.gameOver:
-      state.curr = state.getReady;
-      bird.speed = 0;
-      bird.y = 100;
-      pipe.pipes = [];
-      UI.score.curr = 0;
-      SFX.played = false;
-      break;
-  }
-});
-
-scrn.onkeydown = function keyDown(e) {
-  if (e.keyCode == 32 || e.keyCode == 87 || e.keyCode == 38) {
-    // Space Key or W key or arrow up
-    switch (state.curr) {
-      case state.getReady:
-        state.curr = state.Play;
-        SFX.start.play();
-        break;
-      case state.Play:
-        bird.flap();
-        break;
-      case state.gameOver:
-        state.curr = state.getReady;
-        bird.speed = 0;
-        bird.y = 100;
-        pipe.pipes = [];
-        UI.score.curr = 0;
-        SFX.played = false;
-        break;
-    }
-  }
-};
 
 let frames = 0;
 let dx = 2;
@@ -61,6 +19,61 @@ const SFX = {
   die: new Audio(),
   played: false,
 };
+
+// Particles System
+const particles = [];
+class Particle {
+    constructor(x, y, color, speedX, speedY, life) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.speedX = speedX;
+        this.speedY = speedY;
+        this.life = life;
+        this.maxLife = life;
+        this.size = Math.random() * 3 + 1;
+    }
+    update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        this.life--;
+        this.size = Math.max(0, this.size - 0.1);
+    }
+    draw() {
+        sctx.save();
+        sctx.globalAlpha = Math.max(0, this.life / this.maxLife);
+        sctx.fillStyle = this.color;
+        sctx.beginPath();
+        sctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        sctx.fill();
+        sctx.restore();
+    }
+}
+
+function createParticles(x, y, count, color) {
+    for (let i = 0; i < count; i++) {
+        let speedX = (Math.random() - 0.5) * 4;
+        let speedY = (Math.random() - 0.5) * 4;
+        let life = Math.random() * 20 + 10;
+        particles.push(new Particle(x, y, color, speedX, speedY, life));
+    }
+}
+
+function updateParticles() {
+    for (let i = particles.length - 1; i >= 0; i--) {
+        particles[i].update();
+        if (particles[i].life <= 0) {
+            particles.splice(i, 1);
+        }
+    }
+}
+
+function drawParticles() {
+    for (let p of particles) {
+        p.draw();
+    }
+}
+
 const gnd = {
   sprite: new Image(),
   x: 0,
@@ -80,14 +93,22 @@ const bg = {
   x: 0,
   y: 0,
   draw: function () {
-    y = parseFloat(scrn.height - this.sprite.height);
+    let y = parseFloat(scrn.height - this.sprite.height);
     sctx.drawImage(this.sprite, this.x, y);
+    sctx.drawImage(this.sprite, this.x + this.sprite.width, y);
   },
+  update: function() {
+    if (state.curr != state.Play) return;
+    this.x -= dx * 0.5; // Parallax effect
+    if (this.x <= -this.sprite.width) {
+        this.x = 0;
+    }
+  }
 };
 const pipe = {
   top: { sprite: new Image() },
   bot: { sprite: new Image() },
-  gap: 85,
+  gap: 120, // Increased gap slightly for better playability
   moved: true,
   pipes: [],
   draw: function () {
@@ -130,8 +151,8 @@ const bird = {
   x: 50,
   y: 100,
   speed: 0,
-  gravity: 0.125,
-  thrust: 3.6,
+  gravity: 0.15,
+  thrust: 4.5,
   frame: 0,
   draw: function () {
     let h = this.animations[this.frame].sprite.height;
@@ -157,8 +178,8 @@ const bird = {
         this.speed += this.gravity;
         if (this.y + r >= gnd.y || this.collisioned()) {
           state.curr = state.gameOver;
+          createParticles(this.x, this.y, 30, '#ffcc00'); // Explosion particles
         }
-
         break;
       case state.gameOver:
         this.frame = 1;
@@ -175,7 +196,6 @@ const bird = {
             SFX.played = true;
           }
         }
-
         break;
     }
     this.frame = this.frame % this.animations.length;
@@ -184,6 +204,7 @@ const bird = {
     if (this.y > 0) {
       SFX.flap.play();
       this.speed = -this.thrust;
+      createParticles(this.x, this.y + 10, 5, '#ffffff'); // Flap dust particles
     }
   },
   setRotation: function () {
@@ -195,16 +216,18 @@ const bird = {
   },
   collisioned: function () {
     if (!pipe.pipes.length) return;
-    let bird = this.animations[0].sprite;
+    let birdSprite = this.animations[0].sprite;
     let x = pipe.pipes[0].x;
     let y = pipe.pipes[0].y;
-    let r = bird.height / 4 + bird.width / 4;
+    let r = birdSprite.height / 4 + birdSprite.width / 4;
     let roof = y + parseFloat(pipe.top.sprite.height);
     let floor = roof + pipe.gap;
     let w = parseFloat(pipe.top.sprite.width);
-    if (this.x + r >= x) {
-      if (this.x + r < x + w) {
-        if (this.y - r <= roof || this.y + r >= floor) {
+    
+    // Improved hitbox (slightly smaller than sprite for better feel)
+    if (this.x + r - 5 >= x) {
+      if (this.x - r + 5 < x + w) {
+        if (this.y - r + 5 <= roof || this.y + r - 5 >= floor) {
           SFX.hit.play();
           return true;
         }
@@ -212,6 +235,9 @@ const bird = {
         UI.score.curr++;
         SFX.score.play();
         pipe.moved = false;
+        
+        // Add score floating text effect or particles
+        createParticles(x + w, floor - pipe.gap/2, 10, '#00ff00');
       }
     }
   },
@@ -257,31 +283,32 @@ const UI = {
     sctx.strokeStyle = "#000000";
     switch (state.curr) {
       case state.Play:
-        sctx.lineWidth = "2";
-        sctx.font = "35px Squada One";
-        sctx.fillText(this.score.curr, scrn.width / 2 - 5, 50);
-        sctx.strokeText(this.score.curr, scrn.width / 2 - 5, 50);
+        sctx.lineWidth = 4; // Thicker stroke
+        sctx.font = "bold 45px 'Squada One', sans-serif";
+        sctx.textAlign = "center";
+        sctx.strokeText(this.score.curr, scrn.width / 2, 60);
+        sctx.fillText(this.score.curr, scrn.width / 2, 60);
+        sctx.textAlign = "start"; // reset
         break;
       case state.gameOver:
-        sctx.lineWidth = "2";
-        sctx.font = "40px Squada One";
-        let sc = `SCORE :     ${this.score.curr}`;
+        sctx.lineWidth = 3;
+        sctx.font = "bold 40px 'Squada One', sans-serif";
+        let sc = `SCORE : ${this.score.curr}`;
         try {
           this.score.best = Math.max(
             this.score.curr,
-            localStorage.getItem("best")
+            localStorage.getItem("best") || 0
           );
           localStorage.setItem("best", this.score.best);
-          let bs = `BEST  :     ${this.score.best}`;
-          sctx.fillText(sc, scrn.width / 2 - 80, scrn.height / 2 + 0);
-          sctx.strokeText(sc, scrn.width / 2 - 80, scrn.height / 2 + 0);
-          sctx.fillText(bs, scrn.width / 2 - 80, scrn.height / 2 + 30);
-          sctx.strokeText(bs, scrn.width / 2 - 80, scrn.height / 2 + 30);
+          let bs = `BEST  : ${this.score.best}`;
+          sctx.strokeText(sc, scrn.width / 2 - 80, scrn.height / 2 + 10);
+          sctx.fillText(sc, scrn.width / 2 - 80, scrn.height / 2 + 10);
+          sctx.strokeText(bs, scrn.width / 2 - 80, scrn.height / 2 + 50);
+          sctx.fillText(bs, scrn.width / 2 - 80, scrn.height / 2 + 50);
         } catch (e) {
-          sctx.fillText(sc, scrn.width / 2 - 85, scrn.height / 2 + 15);
-          sctx.strokeText(sc, scrn.width / 2 - 85, scrn.height / 2 + 15);
+          sctx.strokeText(sc, scrn.width / 2 - 85, scrn.height / 2 + 20);
+          sctx.fillText(sc, scrn.width / 2 - 85, scrn.height / 2 + 20);
         }
-
         break;
     }
   },
@@ -290,6 +317,37 @@ const UI = {
     this.frame += frames % 10 == 0 ? 1 : 0;
     this.frame = this.frame % this.tap.length;
   },
+};
+
+// Input handling
+function handleInput() {
+  switch (state.curr) {
+    case state.getReady:
+      state.curr = state.Play;
+      SFX.start.play();
+      break;
+    case state.Play:
+      bird.flap();
+      break;
+    case state.gameOver:
+      state.curr = state.getReady;
+      bird.speed = 0;
+      bird.y = 100;
+      pipe.pipes = [];
+      UI.score.curr = 0;
+      SFX.played = false;
+      particles.length = 0; // Clear particles on restart
+      break;
+  }
+}
+
+scrn.addEventListener("click", handleInput);
+scrn.addEventListener("touchstart", (e) => { e.preventDefault(); handleInput(); }, {passive: false});
+
+scrn.onkeydown = function keyDown(e) {
+  if (e.keyCode == 32 || e.keyCode == 87 || e.keyCode == 38) {
+    handleInput();
+  }
 };
 
 gnd.sprite.src = "assets/images/ground.png";
@@ -310,17 +368,30 @@ SFX.score.src = "assets/sounds/score.wav";
 SFX.hit.src = "assets/sounds/hit.wav";
 SFX.die.src = "assets/sounds/die.wav";
 
+// Check if user wants to use a single sprite sheet
+const newSpriteSheetImg = new Image();
+newSpriteSheetImg.src = "assets/images/new-spritesheet.png";
+let useNewSpriteSheet = false;
+
+newSpriteSheetImg.onload = function() {
+    console.log("Loaded new sprite sheet.");
+    useNewSpriteSheet = true;
+};
+
 function gameLoop() {
   update();
   draw();
   frames++;
+  requestAnimationFrame(gameLoop); // Better than setInterval
 }
 
 function update() {
   bird.update();
+  bg.update(); // Added parallax bg update
   gnd.update();
   pipe.update();
   UI.update();
+  updateParticles();
 }
 
 function draw() {
@@ -328,10 +399,26 @@ function draw() {
   sctx.fillRect(0, 0, scrn.width, scrn.height);
   bg.draw();
   pipe.draw();
-
-  bird.draw();
+  
+  if (useNewSpriteSheet && state.curr !== state.gameOver) {
+    // If the user meant the new sprite sheet to be the bird, we can draw it scaled down
+    sctx.save();
+    sctx.translate(bird.x, bird.y);
+    sctx.rotate(bird.rotatation * RAD);
+    // Draw the whole new image scaled to bird size (assuming it's a replacement bird sprite)
+    let bWidth = 34; // standard bird width
+    let bHeight = 24;
+    sctx.drawImage(newSpriteSheetImg, -bWidth / 2, -bHeight / 2, bWidth, bHeight);
+    sctx.restore();
+  } else {
+    bird.draw();
+  }
+  
+  drawParticles(); // Draw particles before ground
   gnd.draw();
   UI.draw();
 }
 
-setInterval(gameLoop, 20);
+// Start game loop using requestAnimationFrame
+requestAnimationFrame(gameLoop);
+
