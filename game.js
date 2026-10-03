@@ -344,11 +344,14 @@ function handleInput() {
 scrn.addEventListener("click", handleInput);
 scrn.addEventListener("touchstart", (e) => { e.preventDefault(); handleInput(); }, {passive: false});
 
-scrn.onkeydown = function keyDown(e) {
+// Keys work without clicking the canvas first.
+document.addEventListener("keydown", function keyDown(e) {
+  if (e.target.closest && e.target.closest("a, button")) return;
   if (e.keyCode == 32 || e.keyCode == 87 || e.keyCode == 38) {
-    handleInput();
+    e.preventDefault();
+    if (!e.repeat) handleInput();
   }
-};
+});
 
 gnd.sprite.src = "assets/images/ground.png";
 bg.sprite.src = "assets/images/BG.png";
